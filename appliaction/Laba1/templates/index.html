@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<h1>Привет!</h1>
+<p>Это главная страница Flask приложения.</p>
+<img src="{{ url_for('static', filename='images.png') }}" alt="Приветственная картинка" width="300">
+{% endblock %}

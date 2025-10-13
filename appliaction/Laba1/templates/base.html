@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        nav a { margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Главная</a>
+        <a href="/about">Описание</a>
+    </nav>
+    <hr>
+    {% block content %}{% endblock %}
+</body>
+</html>
