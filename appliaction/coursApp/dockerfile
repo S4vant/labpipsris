@@ -1,11 +1,11 @@
 
 FROM python:3.12
 # Устанавливаем рабочую директорию для проекта в контейнере
-WORKDIR /Laba1
 
-COPY requirements.txt /Laba1
+WORKDIR /coursApp
+COPY . /coursApp
 RUN pip install --upgrade pip -r requirements.txt
+RUN python flask db upgrade
 
-COPY . /Laba1
 # Устанавливаем порт, который будет использоваться для сервера
 EXPOSE 5000
