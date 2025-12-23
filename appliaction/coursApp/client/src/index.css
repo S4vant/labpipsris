@@ -1,0 +1,160 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+/* Layout */
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 240px;
+    background: #020617;
+    color: #e5e7eb;
+    padding: 24px;
+}
+
+.sidebar h2 {
+    font-size: 18px;
+    margin-bottom: 32px;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #cbd5f5;
+    margin-bottom: 6px;
+}
+
+.sidebar a.active,
+.sidebar a:hover {
+    background: #1e293b;
+    color: white;
+}
+
+/* Content */
+.content {
+    flex: 1;
+    padding: 32px;
+}
+
+/* Page */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.page-title {
+    font-size: 26px;
+    font-weight: 600;
+}
+
+/* Card */
+.card {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px rgba(0,0,0,.05);
+    padding: 20px;
+}
+
+/* Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    text-align: left;
+    font-size: 14px;
+    color: #475569;
+    padding-bottom: 12px;
+}
+
+td {
+    padding: 14px 0;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* Buttons */
+button {
+    border: none;
+    border-radius: 10px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background: #2563eb;
+    color: white;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-secondary {
+    background: #e5e7eb;
+}
+
+/* Modal */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    width: 420px;
+}
+
+.modal h3 {
+    margin-top: 0;
+}
+
+/* Form */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+input, select {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+}
+.sidebar a {
+  transition: 0.2s ease;
+}
+
+.sidebar a:hover {
+  transform: translateX(6px);
+}
+.admin-header {
+  backdrop-filter: blur(10px);
+  background: rgba(17,24,39,0.8);
+}
+table tr:hover {
+  background: rgba(99,102,241,0.08);
+}

@@ -1,21 +1,46 @@
 import os
-from . import creds
-NAME, USER, PASSWORD, PORT, HOST, SECRET_KEY = creds.creds()
-# print(NAME, USER, PASSWORD, PORT, HOST, SECRET_KEY)
-
+from app.creds import creds
+ADMIN_MASTER_KEY = "create-staff-2025"
 class Config:
-    SECRET_KEY = SECRET_KEY
-    
-    # MySQL configuration
-    MYSQL_HOST = HOST
-    MYSQL_USER = USER
-    MYSQL_PASSWORD = PASSWORD
-    MYSQL_DB = NAME
-    MYSQL_PORT = PORT
-    
-    SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DB}'
+    """
+    Базовая конфигурация приложения
+    """
+    DB_NAME, DB_USER, DB_PASSWORD, DB_PORT, DB_HOST, SECRET_KEY = creds()
+    SECRET_KEY = os.getenv(
+        "SECRET_KEY",
+        "flask_labas_secret_key"
+    )
+    SECRET_KEY = "some-super-secret-key"
+    SESSION_COOKIE_SAMESITE = "Lax"  # или "None" если фронт на другом домене
+    SESSION_COOKIE_HTTPONLY = True
+
+    # DEBUG = os.getenv("FLASK_DEBUG", "true").lower() == "true"
+    DEBUG = True
+    # Database (MySQL + SQLAlchemy)
+    # DB_USER = os.getenv("DB_USER", "coursapp")
+    # DB_PASSWORD = os.getenv("DB_PASSWORD", "password")
+    # DB_HOST = os.getenv("DB_HOST", "localhost")  
+    # DB_PORT = os.getenv("DB_PORT", "3306")
+    # DB_NAME = os.getenv("DB_NAME", "coursapp")
+
+    SQLALCHEMY_DATABASE_URI = (
+        f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}"
+        f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    )
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_recycle': 300,
-        'pool_pre_ping': True
-    }
+    SQLALCHEMY_ECHO = False  
+    JSON_AS_ASCII = False
+    JSON_SORT_KEYS = False
+
+    TIMEZONE = "UTC"
+
+
+class DevelopmentConfig(Config):
+    DEBUG = True
+    SQLALCHEMY_ECHO = True
+
+
+class ProductionConfig(Config):
+    DEBUG = True
+    SQLALCHEMY_ECHO = True

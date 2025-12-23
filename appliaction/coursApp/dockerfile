@@ -5,7 +5,7 @@ FROM python:3.12
 WORKDIR /coursApp
 COPY . /coursApp
 RUN pip install --upgrade pip -r requirements.txt
-RUN python flask db upgrade
+RUN python -m flask db upgrade
 
 # Устанавливаем порт, который будет использоваться для сервера
 EXPOSE 5000

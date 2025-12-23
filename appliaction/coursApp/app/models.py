@@ -1,5 +1,6 @@
 from app import db
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 class Category(db.Model):
@@ -107,21 +108,25 @@ class Employee(db.Model):
     __tablename__ = 'employees'
 
     id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.String(100), nullable=False)
-    last_name = db.Column(db.String(100), nullable=False)
-    position_id = db.Column(db.Integer, db.ForeignKey('employee_positions.id'), nullable=False)
-    phone = db.Column(db.String(20))
-    email = db.Column(db.String(100), unique=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(20), default="staff")
 
-    # Обратная связь к должности
+    position_id = db.Column(db.Integer, db.ForeignKey('employee_positions.id'))
+
+    # relationships
     position = db.relationship('EmployeePosition', back_populates='employees')
-
     orders = db.relationship('Order', back_populates='employee')
     supplies = db.relationship('Supply', back_populates='employee')
 
-    def __repr__(self):
-        return f"<Employee {self.first_name} {self.last_name}>"
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
 
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def __repr__(self):
+        return f"<Employee {self.username} ({self.role})>"
 
 
 class EmployeePosition(db.Model):
@@ -130,14 +135,10 @@ class EmployeePosition(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
 
-    # Один ко многим — одна должность может быть у нескольких сотрудников
     employees = db.relationship('Employee', back_populates='position')
 
     def __repr__(self):
         return f"<Position {self.name}>"
-    
-    def __repr__(self):
-        return f"<Position {self.position}>"
 
 class Order(db.Model):
     __tablename__ = 'orders'
