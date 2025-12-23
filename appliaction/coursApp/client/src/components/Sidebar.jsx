@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
-
+import "./Sidebar.css";
 export default function Sidebar({ user }) {
+  console.log("Успешно:", user);
   const isStaff = user?.role === "staff" || user?.role === "admin";
 
   return (

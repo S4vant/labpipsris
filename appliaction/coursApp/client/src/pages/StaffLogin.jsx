@@ -1,46 +1,44 @@
-import { useState } from "react";
+// pages/StaffLogin.jsx
+import { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { UserContext } from "../context/UserContext";
 
 export default function StaffLogin() {
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
+  const { saveUser } = useContext(UserContext);
+  const navigate = useNavigate();
 
-    async function login(e) {
-        e.preventDefault();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
 
-        fetch("http://localhost:5000/staff/login", {
-  method: "POST",
-  credentials: "include", // чтобы куки сессии шли
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({ username, password })
-})
+  async function submit(e) {
+    e.preventDefault();
+    setError(null);
 
-        if (res.ok) {
-            window.location.href = "/staff";
-        } else {
-            alert("Ошибка входа");
-        }
+    const res = await fetch("http://localhost:5000/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ username, password })
+    });
+
+    if (!res.ok) {
+      setError("Неверный логин или пароль");
+      return;
     }
 
-    return (
-        <form className="card" onSubmit={login}>
-            <h2>Вход для сотрудников</h2>
+    const data = await res.json();
+    saveUser(data.employee);
+    navigate("/staff");
+  }
 
-            <input
-                placeholder="Логин"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-            />
-
-            <input
-                type="password"
-                placeholder="Пароль"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-            />
-
-            <button className="btn-primary">Войти</button>
-        </form>
-    );
+  return (
+    <form onSubmit={submit}>
+      <h2>Staff Login</h2>
+      {error && <p>{error}</p>}
+      <input value={username} onChange={e => setUsername(e.target.value)} />
+      <input type="password" value={password} onChange={e => setPassword(e.target.value)} />
+      <button>Login</button>
+    </form>
+  );
 }

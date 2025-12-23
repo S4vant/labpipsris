@@ -89,21 +89,6 @@ class Customer(db.Model):
 
 
 
-# class Employee(db.Model):
-#     __tablename__ = 'employees'
-
-#     id = db.Column(db.Integer, primary_key=True)
-#     first_name = db.Column(db.String(100), nullable=False)
-#     last_name = db.Column(db.String(100), nullable=False)
-#     position_id = db.Column(db.Integer, db.ForeignKey('employee_positions.id'), nullable=False)
-#     phone = db.Column(db.String(20))
-#     email = db.Column(db.String(100), unique=True)
-#     orders = db.relationship('Order', back_populates='employee')
-#     supplies = db.relationship('Supply', back_populates='employee')
-#     employee_position = db.relationship('employee_position', back_populates='employees')
-
-#     def __repr__(self):
-#         return f"<Employee {self.first_name} {self.last_name}>"
 class Employee(db.Model):
     __tablename__ = 'employees'
 

@@ -11,7 +11,7 @@ export default function EmployeesAdmin() {
     async function submit(e) {
         e.preventDefault();
 
-        const res = await fetch("http://localhost:5000/staff/create", {
+        const res = await fetch("http://localhost:5000/api/staff/create", {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json" },

@@ -51,7 +51,7 @@ def creds():
     user_name = os.environ.get('DATABASE_USERNAME')
     db_password = os.environ.get('DATABASE_ROOT_PASSWORD')
     db_port = os.environ.get('DATABASE_PORT')
-    db_host = os.environ.get('DATABASE_HOST')
+    db_host = "localhost"
     secret_key = os.environ.get('SECRET_KEY')
     print( host_name, user_name, db_password, db_port, db_host)   
     return host_name, user_name, db_password, db_port, db_host, secret_key

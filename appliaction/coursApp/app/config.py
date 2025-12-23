@@ -6,11 +6,7 @@ class Config:
     Базовая конфигурация приложения
     """
     DB_NAME, DB_USER, DB_PASSWORD, DB_PORT, DB_HOST, SECRET_KEY = creds()
-    SECRET_KEY = os.getenv(
-        "SECRET_KEY",
-        "flask_labas_secret_key"
-    )
-    SECRET_KEY = "some-super-secret-key"
+    
     SESSION_COOKIE_SAMESITE = "Lax"  # или "None" если фронт на другом домене
     SESSION_COOKIE_HTTPONLY = True
 

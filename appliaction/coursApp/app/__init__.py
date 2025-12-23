@@ -15,7 +15,8 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db)
 
-    from app.routes import main
-    app.register_blueprint(main, url_prefix="/api")
+    from app.api import main, auth_bp
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(main)
 
     return app

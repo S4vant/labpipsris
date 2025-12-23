@@ -5,12 +5,10 @@ from app import db
 from app.models import Product, Customer, Order, Employee,Category, Supplier, Brand, SupplyItem, OrderItem, Supply
 
 from app.config import ADMIN_MASTER_KEY
-from .decorators import staff_required
+from ..decorators import staff_required
 
 
-main = Blueprint("api", __name__)
-
-
+main = Blueprint("api", __name__, url_prefix="/api")
 
 # ---------------------------
 # Error handlers
@@ -251,7 +249,6 @@ def create_employee():
     return jsonify({"message": "Employee created"})
 
 @main.route("/staff/me", methods=["GET"])
-@staff_required
 def staff_me():
     employee = Employee.query.get(session["employee_id"])
     return jsonify({
@@ -267,7 +264,7 @@ def get_categories():
     return jsonify([{"id": c.id, "name": c.name} for c in categories])
 
 @main.route("/categories", methods=["POST"])
-@staff_required(role="staff")
+@staff_required(role=["staff", "admin"])
 def add_category():
     data = request.get_json()
     if "name" not in data:
@@ -278,7 +275,7 @@ def add_category():
     return jsonify({"message": "Категория добавлена"}), 201
 
 @main.route("/categories/<int:id>", methods=["PUT"])
-@staff_required(role="staff")
+@staff_required(role=["staff", "admin"])
 def update_category(id):
     data = request.get_json()
     category = Category.query.get(id)
@@ -290,7 +287,7 @@ def update_category(id):
     return jsonify({"message": "Категория обновлена"}), 200
 
 @main.route("/categories/<int:id>", methods=["DELETE"])
-@staff_required(role="staff")
+@staff_required(role=["staff", "admin"])
 def delete_category(id):
     category = Category.query.get(id)
     if not category:
@@ -306,7 +303,7 @@ def get_brands():
     return jsonify([{"id": b.id, "name": b.name} for b in brands])
 
 @main.route("/brands", methods=["POST"])
-@staff_required(role="staff")
+@staff_required(role=["staff", "admin"])
 def add_brand():
     data = request.get_json()
     if "name" not in data:
@@ -317,7 +314,7 @@ def add_brand():
     return jsonify({"message": "Бренд добавлен"}), 201
 
 @main.route("/brands/<int:id>", methods=["PUT"])
-@staff_required(role="staff")
+@staff_required(role=["staff", "admin"])
 def update_brand(id):
     data = request.get_json()
     brand = Brand.query.get(id)
@@ -329,7 +326,7 @@ def update_brand(id):
     return jsonify({"message": "Бренд обновлен"}), 200
 
 @main.route("/brands/<int:id>", methods=["DELETE"])
-@staff_required(role="staff")
+@staff_required(role=["staff", "admin"])
 def delete_brand(id):
     brand = Brand.query.get(id)
     if not brand:
@@ -345,7 +342,7 @@ def get_suppliers():
     return jsonify([{"id": s.id, "name": s.name} for s in suppliers])
 
 @main.route("/suppliers", methods=["POST"])
-@staff_required(role="staff")
+@staff_required(role=["staff", "admin"])
 def add_supplier():
     data = request.get_json()
     if "name" not in data:
@@ -356,7 +353,7 @@ def add_supplier():
     return jsonify({"message": "Поставщик добавлен"}), 201
 
 @main.route("/suppliers/<int:id>", methods=["PUT"])
-@staff_required(role="staff")
+@staff_required(role=["staff", "admin"])
 def update_supplier(id):
     data = request.get_json()
     supplier = Supplier.query.get(id)
@@ -368,7 +365,7 @@ def update_supplier(id):
     return jsonify({"message": "Поставщик обновлен"}), 200
 
 @main.route("/suppliers/<int:id>", methods=["DELETE"])
-@staff_required(role="staff")
+@staff_required(role=["staff", "admin"])
 def delete_supplier(id):
     supplier = Supplier.query.get(id)
     if not supplier:
@@ -391,8 +388,11 @@ def get_supplies():
         })
     return jsonify(result)
 
+# @main.route("/", methods=["options"])
+# @staff_required(role=["staff", "admin"])
+
 @main.route("/supplies", methods=["POST"])
-@staff_required(role="staff")
+@staff_required(role=["staff", "admin"])
 def add_supply():
     data = request.get_json()
     if not all(k in data for k in ["supplier_id", "items"]):
