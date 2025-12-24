@@ -1,7 +1,7 @@
 from app import db
-from datetime import datetime
+from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
-
+import uuid
 
 class Category(db.Model):
     __tablename__ = 'categories'
@@ -89,6 +89,30 @@ class Customer(db.Model):
 
 
 
+class EmployeeSession(db.Model):
+    __tablename__ = 'employee_sessions'
+
+    id = db.Column(db.Integer, primary_key=True)
+    session_token = db.Column(db.String(64), unique=True, nullable=False, index=True)
+    
+    employee_id = db.Column(db.Integer, db.ForeignKey('employees.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
+
+    employee = db.relationship('Employee', back_populates='sessions')
+
+    @staticmethod
+    def generate_token():
+        return uuid.uuid4().hex
+
+    @staticmethod
+    def default_expiration(days=7):
+        return datetime.utcnow() + timedelta(days=days)
+
+    def __repr__(self):
+        return f"<EmployeeSession {self.session_token[:8]}... employee={self.employee_id}>"
+
 class Employee(db.Model):
     __tablename__ = 'employees'
 
@@ -104,6 +128,12 @@ class Employee(db.Model):
     orders = db.relationship('Order', back_populates='employee')
     supplies = db.relationship('Supply', back_populates='employee')
 
+    sessions = db.relationship(
+        'EmployeeSession',
+        back_populates='employee',
+        cascade='all, delete-orphan'
+    )
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -112,6 +142,7 @@ class Employee(db.Model):
 
     def __repr__(self):
         return f"<Employee {self.username} ({self.role})>"
+
 
 
 class EmployeePosition(db.Model):

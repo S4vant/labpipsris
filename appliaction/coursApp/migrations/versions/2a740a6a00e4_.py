@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: eec93b29d79c
+Revision ID: 2a740a6a00e4
 Revises: 
-Create Date: 2025-11-01 15:30:13.631902
+Create Date: 2025-12-24 04:53:45.857864
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'eec93b29d79c'
+revision = '2a740a6a00e4'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -57,14 +57,13 @@ def upgrade():
     )
     op.create_table('employees',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('first_name', sa.String(length=100), nullable=False),
-    sa.Column('last_name', sa.String(length=100), nullable=False),
-    sa.Column('position_id', sa.Integer(), nullable=False),
-    sa.Column('phone', sa.String(length=20), nullable=True),
-    sa.Column('email', sa.String(length=100), nullable=True),
+    sa.Column('username', sa.String(length=50), nullable=False),
+    sa.Column('password_hash', sa.String(length=255), nullable=False),
+    sa.Column('role', sa.String(length=20), nullable=True),
+    sa.Column('position_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['position_id'], ['employee_positions.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('email')
+    sa.UniqueConstraint('username')
     )
     op.create_table('products',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -82,6 +81,19 @@ def upgrade():
     sa.ForeignKeyConstraint(['supplier_id'], ['suppliers.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('employee_sessions',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('session_token', sa.String(length=64), nullable=False),
+    sa.Column('employee_id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('expires_at', sa.DateTime(), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
+    sa.ForeignKeyConstraint(['employee_id'], ['employees.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    with op.batch_alter_table('employee_sessions', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_employee_sessions_session_token'), ['session_token'], unique=True)
+
     op.create_table('orders',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('customer_id', sa.Integer(), nullable=False),
@@ -132,6 +144,10 @@ def downgrade():
     op.drop_table('order_items')
     op.drop_table('supplies')
     op.drop_table('orders')
+    with op.batch_alter_table('employee_sessions', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_employee_sessions_session_token'))
+
+    op.drop_table('employee_sessions')
     op.drop_table('products')
     op.drop_table('employees')
     op.drop_table('suppliers')
