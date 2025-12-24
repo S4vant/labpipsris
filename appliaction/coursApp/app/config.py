@@ -23,6 +23,12 @@ class Config:
         f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}"
         f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     )
+    SWAGGER = {
+        "title": "Course Project API",
+        "uiversion": 3,
+        "openapi": "3.0.2",
+        "description": "API документация курсового проекта",
+    }
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False  

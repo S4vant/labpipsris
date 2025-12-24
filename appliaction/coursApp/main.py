@@ -28,3 +28,6 @@ def create_admin():
     db.session.commit()
 
     click.echo("✅ Администратор успешно создан")
+
+if __name__ == "__main__":
+    app.run(debug=True)
