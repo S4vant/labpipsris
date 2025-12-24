@@ -4,3 +4,5 @@ flask_migrate
 dotenv
 pymysql
 flask-cors
+flasgger
+cryptography
