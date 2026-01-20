@@ -1,10 +1,11 @@
-# auth.py
-from flask import Blueprint, request, jsonify, session
-from app.models import Employee
+# app/routes/auth.py
+from flask import Blueprint, request, jsonify, g
+from datetime import datetime
 from app import db
+from app.models import Employee, EmployeeSession
 from app.config import ADMIN_MASTER_KEY
-from werkzeug.security import check_password_hash
 from app.decorators import staff_required
+
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
@@ -16,6 +17,8 @@ def login():
     ----
     tags:
       - Auth
+    security:
+      - BearerAuth: []
     requestBody:
       required: true
       content:
@@ -35,21 +38,44 @@ def login():
     if request.method == "OPTIONS":
         return "", 200
 
-    data = request.json
-    employee = Employee.query.filter_by(username=data["username"]).first()
+    data = request.get_json()
+    if not data or "username" not in data or "password" not in data:
+        return jsonify({"error": "Invalid request"}), 400
 
-    if not employee or not employee.check_password(data["password"]):
+    username = data["username"]
+    password = data["password"]
+
+    employee = Employee.query.filter_by(username=username).first()
+
+    if not employee or not employee.check_password(password):
         return jsonify({"error": "Invalid credentials"}), 401
 
-    session["employee_id"] = employee.id
+    # Проверяем, есть ли уже активная сессия
+    session = EmployeeSession.query.filter_by(employee_id=employee.id, is_active=True).first()
+
+    if session:
+        # Перезаписываем токен и продлеваем время действия
+        session.session_token = EmployeeSession.generate_token()
+        session.expires_at = EmployeeSession.default_expiration(days=7)
+    else:
+        # Создаём новую сессию
+        session = EmployeeSession(
+            session_token=EmployeeSession.generate_token(),
+            employee_id=employee.id,
+            expires_at=EmployeeSession.default_expiration(days=7)
+        )
+        db.session.add(session)
+
+    db.session.commit()
 
     return jsonify({
+        "token": session.session_token,
         "employee": {
             "id": employee.id,
             "username": employee.username,
             "role": employee.role
         }
-    })
+    }), 200
 
 
 @auth_bp.route("/logout", methods=["POST", "OPTIONS"])
@@ -60,6 +86,8 @@ def logout():
     ----
     tags:
       - Auth
+    security:
+      - BearerAuth: []
     responses:
       200:
         description: Успешный логаут
@@ -67,7 +95,18 @@ def logout():
     if request.method == "OPTIONS":
         return "", 200
 
-    session.pop("employee_id", None)
+    auth = request.headers.get("Authorization")
+    token = auth.split()[1]
+
+    session = EmployeeSession.query.filter_by(
+        session_token=token,
+        is_active=True
+    ).first()
+
+    if session:
+        session.is_active = False
+        db.session.commit()
+
     return jsonify({"message": "Logged out"}), 200
 
 
@@ -79,6 +118,8 @@ def me():
     ----
     tags:
       - Auth
+    security:
+      - BearerAuth: []
     responses:
       200:
         description: Обо мне
@@ -97,12 +138,7 @@ def me():
                     role:
                       type: string
     """
-    employee_id = session.get("employee_id")
-
-    if not employee_id:
-        return jsonify({"employee": None}), 401
-
-    employee = Employee.query.get(employee_id)
+    employee = g.employee
 
     return jsonify({
         "employee": {
@@ -110,18 +146,38 @@ def me():
             "username": employee.username,
             "role": employee.role
         }
-    })
+    }), 200
 
-@auth_bp.route("/create_user", methods=["GET"])
+@auth_bp.route("/create_user", methods=["POST", "OPTIONS"])
 @staff_required(role=["staff", "admin"])
 def create_user():
     """
     Создать пользователя
-    ----
+    ---
     tags:
       - Auth
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - username
+              - password
+              - role
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+              role:
+                type: string
+                enum: ["staff", "admin"]
     responses:
-      200:
+      201:
         description: Пользователь создан
         content:
           application/json:
@@ -130,23 +186,37 @@ def create_user():
               properties:
                 message:
                   type: string
-
+      400:
+        description: Ошибка запроса (пользователь существует или поля отсутствуют)
+      403:
+        description: Forbidden (только admin может создавать admin)
     """
-    if request.method == "OPTIONS":
-        return "", 200
+    data = request.get_json()
 
-    data = request.json
-    employee = Employee.query.filter_by(username=data["username"]).first()
+    if not data:
+        return jsonify({"error": "Invalid request"}), 400
 
-    if employee:
+    # Проверка обязательных полей
+    required_fields = {"username", "password", "role"}
+    if not required_fields.issubset(data):
+        return jsonify({"error": "Missing required fields"}), 400
+
+    # Проверка роли: обычный staff не может создать admin
+    if data["role"] == "admin" and g.employee.role != "admin":
+        return jsonify({"error": "Forbidden: only admin can create admin users"}), 403
+
+    # Проверка, что пользователь с таким username ещё не существует
+    if Employee.query.filter_by(username=data["username"]).first():
         return jsonify({"error": "User already exists"}), 400
-    
-    employee = Employee(username=data["username"], role=data["role"])
+
+    # Создание пользователя
+    employee = Employee(
+        username=data["username"],
+        role=data["role"]
+    )
     employee.set_password(data["password"])
 
-    if data["create_key"]!=ADMIN_MASTER_KEY:
-        return jsonify({"error": "Invalid key"}), 400
-    
     db.session.add(employee)
     db.session.commit()
-    return jsonify({"message": "User created"}), 200
+
+    return jsonify({"message": f"User '{employee.username}' created"}), 201

@@ -62,16 +62,21 @@ def get_products():
     try:
         products = Product.query.all()
         return jsonify([
-            {
-                "id": p.id,
-                "name": p.name,
-                "price": p.price,
-                "quantity": p.quantity,
-                "category_id": p.category_id,
-                "brand_id": getattr(p, 'brand_id', None),
-                "supplier_id": p.supplier_id,
-            } for p in products
-        ])
+        {
+            "id": p.id,
+            "name": p.name,
+            "price": float(p.price),
+            "category": {
+                "id": p.category.id,
+                "name": p.category.name
+            } if p.category else None,
+            "brand": {
+                "id": p.brand.id,
+                "name": p.brand.name
+            } if p.brand else None
+        }
+        for p in products
+    ])
     except SQLAlchemyError as e:
         return jsonify({"error": "Ошибка при получении товаров", "details": str(e)}), 500
 
@@ -95,7 +100,6 @@ def add_product():
               - quantity
               - category_id
               - brand_id
-              - supplier_id
             properties:
               name:
                 type: string
@@ -107,8 +111,6 @@ def add_product():
                 type: integer
               brand_id:
                 type: integer
-              supplier_id:
-                type: integer
     responses:
       201:
         description: Товар добавлен
@@ -117,23 +119,39 @@ def add_product():
       500:
         description: Ошибка сервера
     """
-    data = request.get_json()
-    required_fields = ["name", "price", "quantity", "category_id", "brand_id", "supplier_id"]
+    data = request.get_json() or {}
+
+    required_fields = [
+        "name",
+        "price",
+        "category_id",
+        "brand_id",
+    ]
 
     for field in required_fields:
         if field not in data:
             return jsonify({"error": f"Отсутствует обязательное поле: {field}"}), 400
 
     try:
-        new_product = Product(**{k: data[k] for k in required_fields})
+        new_product = Product(
+            name=data["name"],
+            price=data["price"],
+            category_id=data["category_id"],
+            brand_id=data["brand_id"],
+        )
+
         db.session.add(new_product)
         resp = commit_or_rollback()
         if resp:
             return resp
-        return jsonify({"message": "Товар успешно добавлен"}), 201
-    except Exception as e:
-        return jsonify({"error": "Ошибка при добавлении товара", "details": str(e)}), 500
 
+        return jsonify({"message": "Товар успешно добавлен"}), 201
+
+    except Exception as e:
+        return jsonify({
+            "error": "Ошибка при добавлении товара",
+            "details": str(e)
+        }), 500
 @main.route("/products/<int:id>", methods=["PUT"])
 @staff_required(role=["admin", "staff"])
 def update_product(id):
@@ -164,28 +182,35 @@ def update_product(id):
                 type: integer
               brand_id:
                 type: integer
-              supplier_id:
-                type: integer
     responses:
       200:
         description: Товар обновлён
       404:
         description: Товар не найден
     """
-    data = request.get_json()
+    data = request.get_json() or {}
+
     product = Product.query.get(id)
     if not product:
         return jsonify({"error": "Товар не найден"}), 404
 
-    for field in ["name", "price", "quantity", "category_id", "brand_id", "supplier_id"]:
+    updatable_fields = [
+        "name",
+        "price",
+        "quantity",
+        "category_id",
+        "brand_id",
+    ]
+
+    for field in updatable_fields:
         if field in data:
             setattr(product, field, data[field])
 
     resp = commit_or_rollback()
     if resp:
         return resp
-    return jsonify({"message": "Товар обновлён успешно"}), 200
 
+    return jsonify({"message": "Товар обновлён успешно"}), 200
 @main.route("/products/<int:id>", methods=["DELETE"])
 @staff_required(role=["admin", "staff"])
 def delete_product(id):
@@ -424,10 +449,10 @@ def get_categories():
     return jsonify([{"id": c.id, "name": c.name} for c in categories])
 
 @main.route("/categories", methods=["POST"])
-@staff_required(role=["staff", "admin"])
+@staff_required(role=["admin", "staff"])
 def add_category():
     """
-    Добавить категорию
+    Добавить категорию товара
     ---
     tags:
       - Categories
@@ -437,22 +462,47 @@ def add_category():
         application/json:
           schema:
             type: object
-            required: [name]
+            required:
+              - name
             properties:
               name:
                 type: string
     responses:
       201:
         description: Категория добавлена
+      400:
+        description: Некорректные данные
+      409:
+        description: Категория уже существует
     """
-    data = request.get_json()
-    if "name" not in data:
-        return jsonify({"error": "Отсутствует имя категории"}), 400
-    category = Category(name=data["name"])
-    db.session.add(category)
-    db.session.commit()
-    return jsonify({"message": "Категория добавлена"}), 201
+    data = request.get_json() or {}
 
+    name = data.get("name")
+    if not name:
+        return jsonify({"error": "Поле name обязательно"}), 400
+
+    existing = Category.query.filter_by(name=name).first()
+    if existing:
+        return jsonify({"error": "Категория с таким названием уже существует"}), 409
+
+    try:
+        category = Category(name=name)
+        db.session.add(category)
+
+        resp = commit_or_rollback()
+        if resp:
+            return resp
+
+        return jsonify({
+            "message": "Категория успешно добавлена",
+            "id": category.id
+        }), 201
+
+    except Exception as e:
+        return jsonify({
+            "error": "Ошибка при добавлении категории",
+            "details": str(e)
+        }), 500
 @main.route("/categories/<int:id>", methods=["PUT"])
 @staff_required(role=["staff", "admin"])
 def update_category(id):
@@ -538,7 +588,7 @@ def get_brands():
     return jsonify([{"id": b.id, "name": b.name} for b in brands])
 
 @main.route("/brands", methods=["POST"])
-@staff_required(role=["staff", "admin"])
+@staff_required(role=["admin", "staff"])
 def add_brand():
     """
     Добавить бренд
@@ -551,21 +601,47 @@ def add_brand():
         application/json:
           schema:
             type: object
-            required: [name]
+            required:
+              - name
             properties:
               name:
                 type: string
     responses:
       201:
         description: Бренд добавлен
+      400:
+        description: Некорректные данные
+      409:
+        description: Бренд уже существует
     """
-    data = request.get_json()
-    if "name" not in data:
-        return jsonify({"error": "Отсутствует имя бренда"}), 400
-    brand = Brand(name=data["name"])
-    db.session.add(brand)
-    db.session.commit()
-    return jsonify({"message": "Бренд добавлен"}), 201
+    data = request.get_json() or {}
+
+    name = data.get("name")
+    if not name:
+        return jsonify({"error": "Поле name обязательно"}), 400
+
+    existing = Brand.query.filter_by(name=name).first()
+    if existing:
+        return jsonify({"error": "Бренд с таким названием уже существует"}), 409
+
+    try:
+        brand = Brand(name=name)
+        db.session.add(brand)
+
+        resp = commit_or_rollback()
+        if resp:
+            return resp
+
+        return jsonify({
+            "message": "Бренд успешно добавлен",
+            "id": brand.id
+        }), 201
+
+    except Exception as e:
+        return jsonify({
+            "error": "Ошибка при добавлении бренда",
+            "details": str(e)
+        }), 500
 
 @main.route("/brands/<int:id>", methods=["PUT"])
 @staff_required(role=["staff", "admin"])

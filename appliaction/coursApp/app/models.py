@@ -39,7 +39,6 @@ class Supplier(db.Model):
     email = db.Column(db.String(100))
     address = db.Column(db.String(255))
 
-    products = db.relationship('Product', back_populates='supplier')
     supplies = db.relationship('Supply', back_populates='supplier')
 
     def __repr__(self):
@@ -54,7 +53,6 @@ class Product(db.Model):
     name = db.Column(db.String(150), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
     brand_id = db.Column(db.Integer, db.ForeignKey('brands.id'))
-    supplier_id = db.Column(db.Integer, db.ForeignKey('suppliers.id'))
     price = db.Column(db.Numeric(10, 2), nullable=False)
     stock_quantity = db.Column(db.Integer, default=0)
     size = db.Column(db.String(20))
@@ -63,13 +61,12 @@ class Product(db.Model):
 
     category = db.relationship('Category', back_populates='products')
     brand = db.relationship('Brand', back_populates='products')
-    supplier = db.relationship('Supplier', back_populates='products')
     order_items = db.relationship('OrderItem', back_populates='product', cascade='all, delete')
     supply_items = db.relationship('SupplyItem', back_populates='product', cascade='all, delete')
 
     def __repr__(self):
         return f"<Product {self.name} ({self.price}₽)>"
-
+    
 
 
 class Customer(db.Model):
@@ -215,7 +212,7 @@ class SupplyItem(db.Model):
     supply_id = db.Column(db.Integer, db.ForeignKey('supplies.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-    price = db.Column(db.Numeric(10, 2), nullable=False)
+    price = db.Column(db.Integer, nullable=False)
 
     supply = db.relationship('Supply', back_populates='items')
     product = db.relationship('Product', back_populates='supply_items')

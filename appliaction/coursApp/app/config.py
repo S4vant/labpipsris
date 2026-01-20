@@ -24,11 +24,28 @@ class Config:
         f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     )
     SWAGGER = {
-        "title": "Course Project API",
-        "uiversion": 3,
-        "openapi": "3.0.2",
-        "description": "API документация курсового проекта",
-    }
+    "title": "Course Project API",
+    "uiversion": 3,
+    "openapi": "3.0.2",
+    "description": "API документация курсового проекта",
+
+    "components": {
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    },
+
+    # ГЛОБАЛЬНАЯ авторизация (чтобы не писать security в каждом роуте)
+    "security": [
+        {
+            "BearerAuth": []
+        }
+    ]
+}
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False  
