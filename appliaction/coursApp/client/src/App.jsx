@@ -13,21 +13,19 @@ export default function App() {
     const userRole = localStorage.getItem("role"); // например, получаем роль из localStorage
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/user" element={<UserHome />} />
-              <Route path="/staff"
-                    element={
-                        <ProductFilterProvider>
-                        <StaffLayout />
-                        </ProductFilterProvider>
-                    }>
-  <Route path="products" element={<StaffProductsPage />} />
-  <Route path="categories" element={<CategoriesPage />} />
-  <Route path="brands" element={<BrandsPage />} />
-</Route>
-      </Routes>
-    </BrowserRouter>
+  <ProductFilterProvider>
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/user" element={<UserHome />} />
+      <Route path="/staff" element={<StaffLayout />}>
+        <Route index element={<StaffPage />} />
+        <Route path="products" element={<StaffProductsPage />} />
+        <Route path="categories" element={<CategoriesPage />} />
+        <Route path="brands" element={<BrandsPage />} />
+      </Route>
+    </Routes>
+  </ProductFilterProvider>
+</BrowserRouter>
   );
 }

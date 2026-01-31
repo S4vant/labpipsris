@@ -5,11 +5,11 @@ const ProductFilterContext = createContext(null);
 
 export function ProductFilterProvider({ children }) {
   // Добавляем фильтры по category_id и brand_id
-  const [filters, setFilters] = useState({
-    name: "",        // поиск по имени продукта
-    brand_id: "",    // фильтр по бренду
-    category_id: "", // фильтр по категории
-  });
+const [filters, setFilters] = useState({
+  name: "",
+  brand_id: null,
+  category_id: null,
+});
 
   return (
     <ProductFilterContext.Provider value={{ filters, setFilters }}>

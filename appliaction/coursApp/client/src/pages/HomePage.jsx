@@ -8,12 +8,14 @@ export default function HomePage() {
   const [brandFilter, setBrandFilter] = useState("");
   const [nameFilter, setNameFilter] = useState("");
   const [brands, setBrands] = useState([]);
-
+  
   useEffect(() => {
     axios.get("/products").then(res => setProducts(res.data));
     axios.get("/brands").then(res => setBrands(res.data));
   }, []);
-
+  useEffect(() => {
+  console.log("FILTERS FROM PAGE:", filters);
+}, [filters]);
   const filteredProducts = products.filter(p =>
     (brandFilter ? p.brand === brandFilter : true) &&
     (nameFilter ? p.name.toLowerCase().includes(nameFilter.toLowerCase()) : true)
@@ -78,8 +80,9 @@ export default function HomePage() {
                 {/* Здесь место под картинку */}
               </div>
               <h3>{p.name}</h3>
-              <p>Категория: {p.category}</p>
-              <p>Бренд: {p.brand}</p>
+              <p>Категория: {p.category?.name}</p>
+              <p>Бренд: {p.brand?.name}</p>
+
             </div>
           ))}
         </div>
