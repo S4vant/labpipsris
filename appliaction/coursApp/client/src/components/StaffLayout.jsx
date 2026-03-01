@@ -17,6 +17,7 @@ function ProductFilters() {
   console.log("FILTERS FROM SIDEBAR:", filters);
 }, [filters]);
 
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
       <input
@@ -26,14 +27,14 @@ function ProductFilters() {
         onChange={(e) => setFilters({ ...filters, name: e.target.value })}
       />
 
-      <select
-        value={filters.categories_id ?? ""}
-        onChange={(e) =>
-          setFilters({
-            ...filters,
-            categories_id: e.target.value ? Number(e.target.value) : null,
-          })
-        }
+<select
+  value={filters.category_id ?? ""}
+  onChange={(e) =>
+    setFilters({
+      ...filters,
+      category_id: e.target.value ? Number(e.target.value) : null,
+    })
+  }
       >
         <option value="">Все Категории</option>
         {categories.map(b => (

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import axios from "../../api/axios-instance";
-
+import { useProductFilters } from "/src/context/ProductFilterContext";
 export default function StaffProductsPage() {
-  const [products, setProducts] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
+  const [products, setProducts] = useState([]);
+  const { filters } = useProductFilters();
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { name, brand_id, category_id } = filters;
   const [newProduct, setNewProduct] = useState({
     name: "",
     price: "",
@@ -13,6 +16,35 @@ export default function StaffProductsPage() {
     brand_id: "",
     stock: "",
   });
+    useEffect(() => {
+  console.log("FILTERS FROM PAGE:", filters);
+}, [filters]);
+  useEffect(() => {
+  console.log("PRODUCTS:", products);
+}, [products]);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      axios.get("/products").then(res => setProducts(res.data));
+    }
+  }, [isLoggedIn]);
+  
+  // Фильтруем продукты по контексту
+const filteredProducts = products.filter(p => {
+  if (filters.name && !p.name.toLowerCase().includes(filters.name.toLowerCase())) {
+    return false;
+  }
+
+  if (filters.brand_id !== null && p.brand?.id !== filters.brand_id) {
+    return false;
+  }
+
+  if (filters.category_id !== null && p.category?.id !== filters.category_id) {
+    return false;
+  }
+
+  return true;
+});
 
   // Получаем список продуктов
   const fetchProducts = async () => {
@@ -181,7 +213,7 @@ export default function StaffProductsPage() {
       )}
 
       {/* Существующие продукты */}
-      {products.map((product) => (
+      {filteredProducts.map((product) => (
         <div
           key={product.id}
           style={{
