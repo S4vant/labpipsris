@@ -21,7 +21,7 @@ def create_admin():
         click.echo("❌ Пароли не совпадают")
         return
 
-    admin = Employee(username=username, role="admin")
+    admin = Employee(username=username, role="admin", name="admin", second_name="admin", last_name="admin")
     admin.set_password(password)
 
     db.session.add(admin)
@@ -30,4 +30,4 @@ def create_admin():
     click.echo("✅ Администратор успешно создан")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")

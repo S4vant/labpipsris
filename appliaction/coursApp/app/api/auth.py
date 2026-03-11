@@ -137,6 +137,12 @@ def me():
                       type: string
                     role:
                       type: string
+                    name:
+                      type: string
+                    second_name:
+                      type: string
+                    last_name:
+                      type: string
     """
     employee = g.employee
 
@@ -144,6 +150,9 @@ def me():
         "employee": {
             "id": employee.id,
             "username": employee.username,
+            "name": employee.name,
+            "second_name": employee.second_name,
+            "last_name": employee.last_name,
             "role": employee.role
         }
     }), 200
@@ -168,10 +177,19 @@ def create_user():
               - username
               - password
               - role
+              - name
+              - second_name
+              - last_name
             properties:
               username:
                 type: string
               password:
+                type: string
+              name:
+                type: string
+              second_name:
+                type: string
+              last_name:
                 type: string
               role:
                 type: string
@@ -197,7 +215,7 @@ def create_user():
         return jsonify({"error": "Invalid request"}), 400
 
     # Проверка обязательных полей
-    required_fields = {"username", "password", "role"}
+    required_fields = {"username", "password", "role", "name", "second_name", "last_name"}
     if not required_fields.issubset(data):
         return jsonify({"error": "Missing required fields"}), 400
 
@@ -212,7 +230,10 @@ def create_user():
     # Создание пользователя
     employee = Employee(
         username=data["username"],
-        role=data["role"]
+        role=data["role"],
+        name=data["name"],
+        second_name=data["second_name"],
+        last_name=data["last_name"]
     )
     employee.set_password(data["password"])
 

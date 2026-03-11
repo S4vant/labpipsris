@@ -117,11 +117,10 @@ class Employee(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), default="staff")
-
-    position_id = db.Column(db.Integer, db.ForeignKey('employee_positions.id'))
-
+    name = db.Column(db.String(100), nullable=False)
+    second_name = db.Column(db.String(100), nullable=False)
+    last_name = db.Column(db.String(100), nullable=False)
     # relationships
-    position = db.relationship('EmployeePosition', back_populates='employees')
     orders = db.relationship('Order', back_populates='employee')
     supplies = db.relationship('Supply', back_populates='employee')
 
@@ -140,18 +139,6 @@ class Employee(db.Model):
     def __repr__(self):
         return f"<Employee {self.username} ({self.role})>"
 
-
-
-class EmployeePosition(db.Model):
-    __tablename__ = 'employee_positions'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-
-    employees = db.relationship('Employee', back_populates='position')
-
-    def __repr__(self):
-        return f"<Position {self.name}>"
 
 class Order(db.Model):
     __tablename__ = 'orders'

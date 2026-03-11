@@ -1,6 +1,6 @@
 services:
   database:
-    container_name: coursapp-database
+    container_name: ${DATABASE_HOST}
 
     image: mysql:8.0
     restart: on-failure
@@ -16,7 +16,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - db_network
+      - appliaction_app-network
 
   phpmyadmin:
     image: phpmyadmin:latest
@@ -29,7 +29,7 @@ services:
       PMA_PORT: 3306
       MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
     networks:
-      - db_network
+      - appliaction_app-network
     depends_on:
       - database
 
@@ -37,4 +37,6 @@ volumes:
   mysql_data:
 
 networks:
-  db_network:
+  appliaction_app-network:
+    external: true  # если сеть создается в другом файле
+    driver: bridge
